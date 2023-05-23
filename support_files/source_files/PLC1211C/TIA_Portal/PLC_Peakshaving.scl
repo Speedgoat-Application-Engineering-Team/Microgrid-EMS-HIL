@@ -1,0 +1,661 @@
+(*
+ *
+ * File: microgrid_ESS_Desktop_PLCC64_Scaler.scl
+ *
+ * IEC 61131-3 Structured Text (ST) code generated for subsystem "microgrid_ESS_Desktop_PLCC64_Scaler/PLC_64_Scaler"
+ *
+ * Model name                      : microgrid_ESS_Desktop_PLCC64_Scaler
+ * Model version                   : 2.3
+ * Model creator                   : jlesage
+ * Model last modified by          : steve.liu
+ * Model last modified on          : Tue Apr 19 14:34:14 2022
+ * Model sample time               : 0.0002s
+ * Subsystem name                  : microgrid_ESS_Desktop_PLCC64_Scaler/PLC_64_Scaler
+ * Subsystem sample time           : 0.1s
+ * Simulink PLC Coder version      : 3.6 (R2022a) 13-Nov-2021
+ * ST code generated on            : Tue Apr 19 15:08:39 2022
+ *
+ * Target IDE selection            : Siemens TIA Portal: Double Precision
+ * Test Bench included             : No
+ *
+ *)
+TYPE Batt_Mode
+    STRUCT
+        CurrOrVoltSource: LREAL;
+        GenOrSynchMode: LREAL;
+    END_STRUCT
+END_TYPE
+TYPE ESS_Mode
+    STRUCT
+        ControlType: LREAL;
+        Batt_Mode: Batt_Mode;
+    END_STRUCT
+END_TYPE
+FUNCTION_BLOCK PLC_CODER_TIMER
+VAR_INPUT
+    timerAction: INT;
+    maxTime: DINT;
+END_VAR
+VAR_OUTPUT
+    done: BOOL;
+END_VAR
+VAR
+    plcTimer: TON;
+    plcTimerExpired: BOOL;
+END_VAR
+CASE timerAction OF
+    1:
+        (* RESET *)
+        plcTimer(IN:=FALSE, PT:=T#0ms);
+        plcTimerExpired := FALSE;
+        done := FALSE;
+    2:
+        (* AFTER *)
+        IF (NOT(plcTimerExpired)) THEN
+            plcTimer(IN:=TRUE, PT:=DINT_TO_TIME(maxTime));
+        END_IF;
+        plcTimerExpired := plcTimer.Q;
+        done := plcTimerExpired;
+    3:
+        (* BEFORE *)
+        IF (NOT(plcTimerExpired)) THEN
+            plcTimer(IN:=TRUE, PT:=DINT_TO_TIME(maxTime));
+        END_IF;
+        plcTimerExpired := plcTimer.Q;
+        done := NOT(plcTimerExpired);
+END_CASE;
+END_FUNCTION_BLOCK
+FUNCTION_BLOCK PLC_64_Scaler
+VAR_INPUT
+    ssMethodType: SINT;
+    Pmax_W: LREAL;
+    Pcmd_W: LREAL;
+    Power_Grid_P: LREAL;
+    Power_Grid_Q: LREAL;
+    Power_Batt_P: LREAL;
+    Power_Batt_Q: LREAL;
+    Island: LREAL;
+END_VAR
+VAR_OUTPUT
+    PQcmd_P: LREAL;
+    PQcmd_Q: LREAL;
+    ESS_Mode_ControlType: LREAL;
+    c_ESS_Mode_BattModev: LREAL;
+    d_ESS_Mode_BattModev: LREAL;
+    GridBrk: LREAL;
+END_VAR
+VAR
+    PQcmd: ARRAY [0..1] OF LREAL;
+    ESS_Mode_f: ESS_Mode;
+    isIsland: LREAL;
+    temporalCounter_i2: PLC_CODER_TIMER;
+    temporalCounter_i1: PLC_CODER_TIMER;
+    is_active_c1_PLC_64v: USINT;
+    is_GridBreakerLogic: USINT;
+    c_is_active_GridBrea: USINT;
+    is_PeakShaving: USINT;
+    is_GridConnected: USINT;
+    is_ESS_Control: USINT;
+    c_is_active_ESS_Cont: USINT;
+    temp1: BOOL;
+END_VAR
+CASE ssMethodType OF
+    0: 
+        (* SystemInitialize for Atomic SubSystem: '<Root>/PLC_64_Scaler' *)
+        (* SystemInitialize for Atomic SubSystem: '<S1>/Subsystem' *)
+        (* SystemInitialize for Chart: '<S2>/Peak_Shaving Algorithm' incorporates:
+         *  Outport: '<Root>/GridBrk' *)
+        c_is_active_ESS_Cont := 0;
+        is_ESS_Control := 0;
+        is_GridConnected := 0;
+        is_PeakShaving := 0;
+        temporalCounter_i1(timerAction := 1, maxTime := 0);
+        c_is_active_GridBrea := 0;
+        is_GridBreakerLogic := 0;
+        temporalCounter_i2(timerAction := 1, maxTime := 0);
+        is_active_c1_PLC_64v := 0;
+        isIsland := 0.0;
+        PQcmd[0] := 0.0;
+        PQcmd[1] := 0.0;
+        ESS_Mode_f.ControlType := 0.0;
+        ESS_Mode_f.Batt_Mode.CurrOrVoltSource := 0.0;
+        ESS_Mode_f.Batt_Mode.GenOrSynchMode := 0.0;
+        GridBrk := 0.0;
+        (* End of SystemInitialize for SubSystem: '<S1>/Subsystem' *)
+        (* End of SystemInitialize for SubSystem: '<Root>/PLC_64_Scaler' *)
+    1: 
+        (* Outputs for Atomic SubSystem: '<Root>/PLC_64_Scaler' *)
+        (* Outputs for Atomic SubSystem: '<S1>/Subsystem' *)
+        (* Chart: '<S2>/Peak_Shaving Algorithm' incorporates:
+         *  BusCreator: '<S2>/BusConversion_InsertedFor_Peak_Shaving Algorithm_at_inport_2'
+         *  Outport: '<Root>/GridBrk' *)
+        (* Gateway: PLC_64_Scaler/Subsystem/Peak_Shaving
+        Algorithm *)
+        (* During: PLC_64_Scaler/Subsystem/Peak_Shaving
+        Algorithm *)
+        IF is_active_c1_PLC_64v = 0 THEN 
+            (* Entry: PLC_64_Scaler/Subsystem/Peak_Shaving
+            Algorithm *)
+            is_active_c1_PLC_64v := 1;
+            (* Entry Internal: PLC_64_Scaler/Subsystem/Peak_Shaving
+            Algorithm *)
+            c_is_active_ESS_Cont := 1;
+            (* Entry 'ESS_Control': '<S3>:33' *)
+            (* Entry Internal 'ESS_Control': '<S3>:33' *)
+            (* Transition: '<S3>:66' *)
+            is_ESS_Control := 1;
+            (* Entry 'GridConnected': '<S3>:59' *)
+            (* '<S3>:59:3' ESS_Mode.ControlType = 0; *)
+            ESS_Mode_f.ControlType := 0.0;
+            (* PQ Mode *)
+            (* '<S3>:59:4' ESS_Mode.Batt_Mode.CurrOrVoltSource = 0; *)
+            ESS_Mode_f.Batt_Mode.CurrOrVoltSource := 0.0;
+            (* Current Source *)
+            (* '<S3>:59:5' isIsland = 0; *)
+            isIsland := 0.0;
+            (* Entry Internal 'GridConnected': '<S3>:59' *)
+            (* Transition: '<S3>:2' *)
+            is_GridConnected := 1;
+            (* Entry 'Nominal': '<S3>:1' *)
+            (* '<S3>:1:3' PQcmd = [Pcmd;0]; *)
+            PQcmd[0] := Pcmd_W;
+            PQcmd[1] := 0.0;
+            c_is_active_GridBrea := 1;
+            (* Entry 'GridBreakerLogic': '<S3>:34' *)
+            (* Entry Internal 'GridBreakerLogic': '<S3>:34' *)
+            (* Transition: '<S3>:37' *)
+            is_GridBreakerLogic := 1;
+            (* Entry 'GridTied': '<S3>:36' *)
+            (* '<S3>:36:3' GridTie = 1; *)
+            GridBrk := 1.0;
+        ELSE 
+            IF c_is_active_ESS_Cont <> 0 THEN 
+                (* During 'ESS_Control': '<S3>:33' *)
+                (* '<S3>:33:3' P_Excess = Power.Grid.P + Power.Batt.P + Pcmd - Pmax; *)
+                (* '<S3>:33:4' P_Max = genMax - Power.Batt.P; *)
+                CASE is_ESS_Control OF
+                    1: 
+                        (* During 'GridConnected': '<S3>:59' *)
+                        (* '<S3>:82:1' sf_internal_predicateOutput = Island == 1; *)
+                        IF Island = 1.0 THEN 
+                            (* Transition: '<S3>:82' *)
+                            (* Exit Internal 'GridConnected': '<S3>:59' *)
+                            (* Exit Internal 'PeakShaving': '<S3>:3' *)
+                            is_PeakShaving := 0;
+                            is_GridConnected := 0;
+                            is_ESS_Control := 3;
+                            (* Entry 'PrepareToIsland': '<S3>:81' *)
+                            (* '<S3>:81:3' PQcmd = [Power.Grid.P + Power.Batt.P + Pcmd; 0]; *)
+                            PQcmd[0] := (Power_Grid_P + Power_Batt_P) + Pcmd_W;
+                            PQcmd[1] := 0.0;
+                        ELSE 
+                            (* '<S3>:59:3' ESS_Mode.ControlType = 0; *)
+                            ESS_Mode_f.ControlType := 0.0;
+                            (* PQ Mode *)
+                            (* '<S3>:59:4' ESS_Mode.Batt_Mode.CurrOrVoltSource = 0; *)
+                            ESS_Mode_f.Batt_Mode.CurrOrVoltSource := 0.0;
+                            (* Current Source *)
+                            (* '<S3>:59:5' isIsland = 0; *)
+                            isIsland := 0.0;
+                            CASE is_GridConnected OF
+                                1: 
+                                    (* During 'Nominal': '<S3>:1' *)
+                                    (* '<S3>:5:1' sf_internal_predicateOutput = Power.Grid.P + Pcmd ... *)
+                                    (* '<S3>:5:2'  > Pmax; *)
+                                    IF (Power_Grid_P + Pcmd_W) > Pmax_W THEN 
+                                        (* Transition: '<S3>:5' *)
+                                        is_GridConnected := 2;
+                                        temporalCounter_i1(timerAction := 1, maxTime := 0);
+                                        (* Entry 'PeakShaving': '<S3>:3' *)
+                                        (* Entry Internal 'PeakShaving': '<S3>:3' *)
+                                        (* Transition: '<S3>:7' *)
+                                        is_PeakShaving := 1;
+                                        (* Entry 'LoadFollowing': '<S3>:6' *)
+                                    ELSE 
+                                        (* '<S3>:1:3' PQcmd = [Pcmd;0]; *)
+                                        PQcmd[0] := Pcmd_W;
+                                        PQcmd[1] := 0.0;
+                                    END_IF;
+                                2: 
+                                    (* During 'PeakShaving': '<S3>:3' *)
+                                    (* '<S3>:4:1' sf_internal_predicateOutput = Power.Batt.P < 0 ... *)
+                                    (* '<S3>:4:2' && after(1,sec); *)
+                                    temp1 := FALSE;
+                                    IF Power_Batt_P < 0.0 THEN 
+                                        temporalCounter_i1(timerAction := 2, maxTime := 1000);
+                                        IF temporalCounter_i1.done THEN 
+                                            (* Transition: '<S3>:4' *)
+                                            (* Exit Internal 'PeakShaving': '<S3>:3' *)
+                                            is_PeakShaving := 0;
+                                            is_GridConnected := 1;
+                                            (* Entry 'Nominal': '<S3>:1' *)
+                                            (* '<S3>:1:3' PQcmd = [Pcmd;0]; *)
+                                            PQcmd[0] := Pcmd_W;
+                                            PQcmd[1] := 0.0;
+                                        ELSE 
+                                            temp1 := TRUE;
+                                        END_IF;
+                                    ELSE 
+                                        temp1 := TRUE;
+                                    END_IF;
+                                    IF temp1 THEN 
+                                        CASE is_PeakShaving OF
+                                            1: 
+                                                (* During 'LoadFollowing': '<S3>:6' *)
+                                                (* '<S3>:11:1' sf_internal_predicateOutput = Power.Batt.P > genMax; *)
+                                                IF Power_Batt_P > 5.0E+6 THEN 
+                                                    (* Transition: '<S3>:11' *)
+                                                    is_PeakShaving := 2;
+                                                    (* Entry 'MaxLocalGeneration': '<S3>:10' *)
+                                                ELSE 
+                                                    (* '<S3>:6:3' PQcmd = [P_Excess;0]; *)
+                                                    PQcmd[0] := ((Power_Grid_P + Power_Batt_P) + Pcmd_W) - Pmax_W;
+                                                    PQcmd[1] := 0.0;
+                                                END_IF;
+                                            2: 
+                                                (* During 'MaxLocalGeneration': '<S3>:10' *)
+                                                (* '<S3>:12:1' sf_internal_predicateOutput = Power.Batt.P < 0.95*genMax; *)
+                                                IF Power_Batt_P < 4.75E+6 THEN 
+                                                    (* Transition: '<S3>:12' *)
+                                                    is_PeakShaving := 1;
+                                                    (* Entry 'LoadFollowing': '<S3>:6' *)
+                                                ELSE 
+                                                    (* '<S3>:10:3' PQcmd = [P_Max;0]; *)
+                                                    PQcmd[0] := 5.0E+6 - Power_Batt_P;
+                                                    PQcmd[1] := 0.0;
+                                                END_IF;
+                                        END_CASE;
+                                    END_IF;
+                            END_CASE;
+                        END_IF;
+                    2: 
+                        (* During 'Islanded': '<S3>:64' *)
+                        (* '<S3>:70:1' sf_internal_predicateOutput = Synchronize; *)
+                        (* '<S3>:64:3' ESS_Mode.Batt_Mode.CurrOrVoltSource = 1; *)
+                        ESS_Mode_f.Batt_Mode.CurrOrVoltSource := 1.0;
+                        (* Voltage Source *)
+                        (* '<S3>:64:4' ESS_Mode.Batt_Mode.GenOrSynchMode = 0; *)
+                        ESS_Mode_f.Batt_Mode.GenOrSynchMode := 0.0;
+                        (* No synch *)
+                        (* '<S3>:64:5' ESS_Mode.ControlType = 2; *)
+                        ESS_Mode_f.ControlType := 2.0;
+                        (* No Current Control *)
+                    3: 
+                        (* During 'PrepareToIsland': '<S3>:81' *)
+                        (* '<S3>:83:1' sf_internal_predicateOutput = Power.Grid.P < 100; *)
+                        IF Power_Grid_P < 100.0 THEN 
+                            (* Transition: '<S3>:83' *)
+                            (* '<S3>:83:1' isIsland = 1; *)
+                            isIsland := 1.0;
+                            is_ESS_Control := 2;
+                            (* Entry 'Islanded': '<S3>:64' *)
+                        ELSE 
+                            (* '<S3>:81:3' PQcmd = [Power.Grid.P + Power.Batt.P + Pcmd; 0]; *)
+                            PQcmd[0] := (Power_Grid_P + Power_Batt_P) + Pcmd_W;
+                            PQcmd[1] := 0.0;
+                        END_IF;
+                    4: 
+                        (* During 'Synchronize': '<S3>:69' *)
+                        (* '<S3>:76:1' sf_internal_predicateOutput = Reconnect; *)
+                        (* '<S3>:69:3' ESS_Mode.Batt_Mode.CurrOrVoltSource = 1; *)
+                        ESS_Mode_f.Batt_Mode.CurrOrVoltSource := 1.0;
+                        (* Voltage Source *)
+                        (* '<S3>:69:4' ESS_Mode.Batt_Mode.GenOrSynchMode = 1; *)
+                        ESS_Mode_f.Batt_Mode.GenOrSynchMode := 1.0;
+                        (* Synchronize *)
+                END_CASE;
+            END_IF;
+            IF c_is_active_GridBrea <> 0 THEN 
+                (* During 'GridBreakerLogic': '<S3>:34' *)
+                CASE is_GridBreakerLogic OF
+                    1: 
+                        (* During 'GridTied': '<S3>:36' *)
+                        (* '<S3>:40:1' sf_internal_predicateOutput = isIsland == 1; *)
+                        IF isIsland = 1.0 THEN 
+                            (* Transition: '<S3>:40' *)
+                            is_GridBreakerLogic := 2;
+                            temporalCounter_i2(timerAction := 1, maxTime := 0);
+                            (* Entry 'Islanded': '<S3>:38' *)
+                        ELSE 
+                            (* '<S3>:36:3' GridTie = 1; *)
+                            GridBrk := 1.0;
+                        END_IF;
+                    2: 
+                        (* During 'Islanded': '<S3>:38' *)
+                        (* '<S3>:54:1' sf_internal_predicateOutput = after(1,sec) && Island == 0; *)
+                        temporalCounter_i2(timerAction := 2, maxTime := 1000);
+                        IF temporalCounter_i2.done THEN 
+                            IF Island = 0.0 THEN 
+                                (* Transition: '<S3>:54' *)
+                                (* '<S3>:54:1' send(Synchronize,ESS_Control) *)
+                                IF c_is_active_ESS_Cont <> 0 THEN 
+                                    (* During 'ESS_Control': '<S3>:33' *)
+                                    (* '<S3>:33:3' P_Excess = Power.Grid.P + Power.Batt.P + Pcmd - Pmax; *)
+                                    (* '<S3>:33:4' P_Max = genMax - Power.Batt.P; *)
+                                    CASE is_ESS_Control OF
+                                        1: 
+                                            (* During 'GridConnected': '<S3>:59' *)
+                                            (* '<S3>:82:1' sf_internal_predicateOutput = Island == 1; *)
+                                            (* '<S3>:59:3' ESS_Mode.ControlType = 0; *)
+                                            ESS_Mode_f.ControlType := 0.0;
+                                            (* PQ Mode *)
+                                            (* '<S3>:59:4' ESS_Mode.Batt_Mode.CurrOrVoltSource = 0; *)
+                                            ESS_Mode_f.Batt_Mode.CurrOrVoltSource := 0.0;
+                                            (* Current Source *)
+                                            (* '<S3>:59:5' isIsland = 0; *)
+                                            isIsland := 0.0;
+                                            CASE is_GridConnected OF
+                                                1: 
+                                                    (* During 'Nominal': '<S3>:1' *)
+                                                    (* '<S3>:5:1' sf_internal_predicateOutput = Power.Grid.P + Pcmd ... *)
+                                                    (* '<S3>:5:2'  > Pmax; *)
+                                                    IF (Power_Grid_P + Pcmd_W) > Pmax_W THEN 
+                                                        (* Transition: '<S3>:5' *)
+                                                        is_GridConnected := 2;
+                                                        temporalCounter_i1(timerAction := 1, maxTime := 0);
+                                                        (* Entry 'PeakShaving': '<S3>:3' *)
+                                                        (* Entry Internal 'PeakShaving': '<S3>:3' *)
+                                                        (* Transition: '<S3>:7' *)
+                                                        is_PeakShaving := 1;
+                                                        (* Entry 'LoadFollowing': '<S3>:6' *)
+                                                    ELSE 
+                                                        (* '<S3>:1:3' PQcmd = [Pcmd;0]; *)
+                                                        PQcmd[0] := Pcmd_W;
+                                                        PQcmd[1] := 0.0;
+                                                    END_IF;
+                                                2: 
+                                                    (* During 'PeakShaving': '<S3>:3' *)
+                                                    (* '<S3>:4:1' sf_internal_predicateOutput = Power.Batt.P < 0 ... *)
+                                                    (* '<S3>:4:2' && after(1,sec); *)
+                                                    temp1 := FALSE;
+                                                    IF Power_Batt_P < 0.0 THEN 
+                                                        temporalCounter_i1(timerAction := 2, maxTime := 1000);
+                                                        IF temporalCounter_i1.done THEN 
+                                                            (* Transition: '<S3>:4' *)
+                                                            (* Exit Internal 'PeakShaving': '<S3>:3' *)
+                                                            is_PeakShaving := 0;
+                                                            is_GridConnected := 1;
+                                                            (* Entry 'Nominal': '<S3>:1' *)
+                                                            (* '<S3>:1:3' PQcmd = [Pcmd;0]; *)
+                                                            PQcmd[0] := Pcmd_W;
+                                                            PQcmd[1] := 0.0;
+                                                        ELSE 
+                                                            temp1 := TRUE;
+                                                        END_IF;
+                                                    ELSE 
+                                                        temp1 := TRUE;
+                                                    END_IF;
+                                                    IF temp1 THEN 
+                                                        CASE is_PeakShaving OF
+                                                            1: 
+                                                                (* During 'LoadFollowing': '<S3>:6' *)
+                                                                (* '<S3>:11:1' sf_internal_predicateOutput = Power.Batt.P > genMax; *)
+                                                                IF Power_Batt_P > 5.0E+6 THEN 
+                                                                    (* Transition: '<S3>:11' *)
+                                                                    is_PeakShaving := 2;
+                                                                    (* Entry 'MaxLocalGeneration': '<S3>:10' *)
+                                                                ELSE 
+                                                                    (* '<S3>:6:3' PQcmd = [P_Excess;0]; *)
+                                                                    PQcmd[0] := ((Power_Grid_P + Power_Batt_P) + Pcmd_W) - Pmax_W;
+                                                                    PQcmd[1] := 0.0;
+                                                                END_IF;
+                                                            2: 
+                                                                (* During 'MaxLocalGeneration': '<S3>:10' *)
+                                                                (* '<S3>:12:1' sf_internal_predicateOutput = Power.Batt.P < 0.95*genMax; *)
+                                                                IF Power_Batt_P < 4.75E+6 THEN 
+                                                                    (* Transition: '<S3>:12' *)
+                                                                    is_PeakShaving := 1;
+                                                                    (* Entry 'LoadFollowing': '<S3>:6' *)
+                                                                ELSE 
+                                                                    (* '<S3>:10:3' PQcmd = [P_Max;0]; *)
+                                                                    PQcmd[0] := 5.0E+6 - Power_Batt_P;
+                                                                    PQcmd[1] := 0.0;
+                                                                END_IF;
+                                                        END_CASE;
+                                                    END_IF;
+                                            END_CASE;
+                                        2: 
+                                            (* During 'Islanded': '<S3>:64' *)
+                                            (* '<S3>:70:1' sf_internal_predicateOutput = Synchronize; *)
+                                            (* Transition: '<S3>:70' *)
+                                            is_ESS_Control := 4;
+                                            (* Entry 'Synchronize': '<S3>:69' *)
+                                            (* '<S3>:69:3' ESS_Mode.Batt_Mode.CurrOrVoltSource = 1; *)
+                                            ESS_Mode_f.Batt_Mode.CurrOrVoltSource := 1.0;
+                                            (* Voltage Source *)
+                                            (* '<S3>:69:4' ESS_Mode.Batt_Mode.GenOrSynchMode = 1; *)
+                                            ESS_Mode_f.Batt_Mode.GenOrSynchMode := 1.0;
+                                            (* Synchronize *)
+                                        3: 
+                                            (* During 'PrepareToIsland': '<S3>:81' *)
+                                            (* '<S3>:83:1' sf_internal_predicateOutput = Power.Grid.P < 100; *)
+                                            IF Power_Grid_P < 100.0 THEN 
+                                                (* Transition: '<S3>:83' *)
+                                                (* '<S3>:83:1' isIsland = 1; *)
+                                                isIsland := 1.0;
+                                                is_ESS_Control := 2;
+                                                (* Entry 'Islanded': '<S3>:64' *)
+                                            ELSE 
+                                                (* '<S3>:81:3' PQcmd = [Power.Grid.P + Power.Batt.P + Pcmd; 0]; *)
+                                                PQcmd[0] := (Power_Grid_P + Power_Batt_P) + Pcmd_W;
+                                                PQcmd[1] := 0.0;
+                                            END_IF;
+                                        4: 
+                                            (* During 'Synchronize': '<S3>:69' *)
+                                            (* '<S3>:76:1' sf_internal_predicateOutput = Reconnect; *)
+                                            (* '<S3>:69:3' ESS_Mode.Batt_Mode.CurrOrVoltSource = 1; *)
+                                            ESS_Mode_f.Batt_Mode.CurrOrVoltSource := 1.0;
+                                            (* Voltage Source *)
+                                            (* '<S3>:69:4' ESS_Mode.Batt_Mode.GenOrSynchMode = 1; *)
+                                            ESS_Mode_f.Batt_Mode.GenOrSynchMode := 1.0;
+                                            (* Synchronize *)
+                                    END_CASE;
+                                END_IF;
+                                is_GridBreakerLogic := 4;
+                                temporalCounter_i2(timerAction := 1, maxTime := 0);
+                            ELSE 
+                                (* '<S3>:38:3' GridTie = 0; *)
+                                GridBrk := 0.0;
+                            END_IF;
+                        ELSE 
+                            (* '<S3>:38:3' GridTie = 0; *)
+                            GridBrk := 0.0;
+                        END_IF;
+                    3: 
+                        (* During 'Reconnect': '<S3>:74' *)
+                        (* '<S3>:75:1' sf_internal_predicateOutput = after(1,sec); *)
+                        temporalCounter_i2(timerAction := 2, maxTime := 1000);
+                        IF temporalCounter_i2.done THEN 
+                            (* Transition: '<S3>:75' *)
+                            (* '<S3>:75:1' send(Reconnect,ESS_Control) *)
+                            IF c_is_active_ESS_Cont <> 0 THEN 
+                                (* During 'ESS_Control': '<S3>:33' *)
+                                (* '<S3>:33:3' P_Excess = Power.Grid.P + Power.Batt.P + Pcmd - Pmax; *)
+                                (* '<S3>:33:4' P_Max = genMax - Power.Batt.P; *)
+                                CASE is_ESS_Control OF
+                                    1: 
+                                        (* During 'GridConnected': '<S3>:59' *)
+                                        (* '<S3>:82:1' sf_internal_predicateOutput = Island == 1; *)
+                                        IF Island = 1.0 THEN 
+                                            (* Transition: '<S3>:82' *)
+                                            (* Exit Internal 'GridConnected': '<S3>:59' *)
+                                            (* Exit Internal 'PeakShaving': '<S3>:3' *)
+                                            is_PeakShaving := 0;
+                                            is_GridConnected := 0;
+                                            is_ESS_Control := 3;
+                                            (* Entry 'PrepareToIsland': '<S3>:81' *)
+                                            (* '<S3>:81:3' PQcmd = [Power.Grid.P + Power.Batt.P + Pcmd; 0]; *)
+                                            PQcmd[0] := (Power_Grid_P + Power_Batt_P) + Pcmd_W;
+                                            PQcmd[1] := 0.0;
+                                        ELSE 
+                                            (* '<S3>:59:3' ESS_Mode.ControlType = 0; *)
+                                            ESS_Mode_f.ControlType := 0.0;
+                                            (* PQ Mode *)
+                                            (* '<S3>:59:4' ESS_Mode.Batt_Mode.CurrOrVoltSource = 0; *)
+                                            ESS_Mode_f.Batt_Mode.CurrOrVoltSource := 0.0;
+                                            (* Current Source *)
+                                            (* '<S3>:59:5' isIsland = 0; *)
+                                            isIsland := 0.0;
+                                            CASE is_GridConnected OF
+                                                1: 
+                                                    (* During 'Nominal': '<S3>:1' *)
+                                                    (* '<S3>:5:1' sf_internal_predicateOutput = Power.Grid.P + Pcmd ... *)
+                                                    (* '<S3>:5:2'  > Pmax; *)
+                                                    IF (Power_Grid_P + Pcmd_W) > Pmax_W THEN 
+                                                        (* Transition: '<S3>:5' *)
+                                                        is_GridConnected := 2;
+                                                        temporalCounter_i1(timerAction := 1, maxTime := 0);
+                                                        (* Entry 'PeakShaving': '<S3>:3' *)
+                                                        (* Entry Internal 'PeakShaving': '<S3>:3' *)
+                                                        (* Transition: '<S3>:7' *)
+                                                        is_PeakShaving := 1;
+                                                        (* Entry 'LoadFollowing': '<S3>:6' *)
+                                                    ELSE 
+                                                        (* '<S3>:1:3' PQcmd = [Pcmd;0]; *)
+                                                        PQcmd[0] := Pcmd_W;
+                                                        PQcmd[1] := 0.0;
+                                                    END_IF;
+                                                2: 
+                                                    (* During 'PeakShaving': '<S3>:3' *)
+                                                    (* '<S3>:4:1' sf_internal_predicateOutput = Power.Batt.P < 0 ... *)
+                                                    (* '<S3>:4:2' && after(1,sec); *)
+                                                    temp1 := FALSE;
+                                                    IF Power_Batt_P < 0.0 THEN 
+                                                        temporalCounter_i1(timerAction := 2, maxTime := 1000);
+                                                        IF temporalCounter_i1.done THEN 
+                                                            (* Transition: '<S3>:4' *)
+                                                            (* Exit Internal 'PeakShaving': '<S3>:3' *)
+                                                            is_PeakShaving := 0;
+                                                            is_GridConnected := 1;
+                                                            (* Entry 'Nominal': '<S3>:1' *)
+                                                            (* '<S3>:1:3' PQcmd = [Pcmd;0]; *)
+                                                            PQcmd[0] := Pcmd_W;
+                                                            PQcmd[1] := 0.0;
+                                                        ELSE 
+                                                            temp1 := TRUE;
+                                                        END_IF;
+                                                    ELSE 
+                                                        temp1 := TRUE;
+                                                    END_IF;
+                                                    IF temp1 THEN 
+                                                        CASE is_PeakShaving OF
+                                                            1: 
+                                                                (* During 'LoadFollowing': '<S3>:6' *)
+                                                                (* '<S3>:11:1' sf_internal_predicateOutput = Power.Batt.P > genMax; *)
+                                                                IF Power_Batt_P > 5.0E+6 THEN 
+                                                                    (* Transition: '<S3>:11' *)
+                                                                    is_PeakShaving := 2;
+                                                                    (* Entry 'MaxLocalGeneration': '<S3>:10' *)
+                                                                ELSE 
+                                                                    (* '<S3>:6:3' PQcmd = [P_Excess;0]; *)
+                                                                    PQcmd[0] := ((Power_Grid_P + Power_Batt_P) + Pcmd_W) - Pmax_W;
+                                                                    PQcmd[1] := 0.0;
+                                                                END_IF;
+                                                            2: 
+                                                                (* During 'MaxLocalGeneration': '<S3>:10' *)
+                                                                (* '<S3>:12:1' sf_internal_predicateOutput = Power.Batt.P < 0.95*genMax; *)
+                                                                IF Power_Batt_P < 4.75E+6 THEN 
+                                                                    (* Transition: '<S3>:12' *)
+                                                                    is_PeakShaving := 1;
+                                                                    (* Entry 'LoadFollowing': '<S3>:6' *)
+                                                                ELSE 
+                                                                    (* '<S3>:10:3' PQcmd = [P_Max;0]; *)
+                                                                    PQcmd[0] := 5.0E+6 - Power_Batt_P;
+                                                                    PQcmd[1] := 0.0;
+                                                                END_IF;
+                                                        END_CASE;
+                                                    END_IF;
+                                            END_CASE;
+                                        END_IF;
+                                    2: 
+                                        (* During 'Islanded': '<S3>:64' *)
+                                        (* '<S3>:70:1' sf_internal_predicateOutput = Synchronize; *)
+                                        (* '<S3>:64:3' ESS_Mode.Batt_Mode.CurrOrVoltSource = 1; *)
+                                        ESS_Mode_f.Batt_Mode.CurrOrVoltSource := 1.0;
+                                        (* Voltage Source *)
+                                        (* '<S3>:64:4' ESS_Mode.Batt_Mode.GenOrSynchMode = 0; *)
+                                        ESS_Mode_f.Batt_Mode.GenOrSynchMode := 0.0;
+                                        (* No synch *)
+                                        (* '<S3>:64:5' ESS_Mode.ControlType = 2; *)
+                                        ESS_Mode_f.ControlType := 2.0;
+                                        (* No Current Control *)
+                                    3: 
+                                        (* During 'PrepareToIsland': '<S3>:81' *)
+                                        (* '<S3>:83:1' sf_internal_predicateOutput = Power.Grid.P < 100; *)
+                                        IF Power_Grid_P < 100.0 THEN 
+                                            (* Transition: '<S3>:83' *)
+                                            (* '<S3>:83:1' isIsland = 1; *)
+                                            isIsland := 1.0;
+                                            is_ESS_Control := 2;
+                                            (* Entry 'Islanded': '<S3>:64' *)
+                                        ELSE 
+                                            (* '<S3>:81:3' PQcmd = [Power.Grid.P + Power.Batt.P + Pcmd; 0]; *)
+                                            PQcmd[0] := (Power_Grid_P + Power_Batt_P) + Pcmd_W;
+                                            PQcmd[1] := 0.0;
+                                        END_IF;
+                                    4: 
+                                        (* During 'Synchronize': '<S3>:69' *)
+                                        (* '<S3>:76:1' sf_internal_predicateOutput = Reconnect; *)
+                                        (* Transition: '<S3>:76' *)
+                                        is_ESS_Control := 1;
+                                        (* Entry 'GridConnected': '<S3>:59' *)
+                                        (* '<S3>:59:3' ESS_Mode.ControlType = 0; *)
+                                        ESS_Mode_f.ControlType := 0.0;
+                                        (* PQ Mode *)
+                                        (* '<S3>:59:4' ESS_Mode.Batt_Mode.CurrOrVoltSource = 0; *)
+                                        ESS_Mode_f.Batt_Mode.CurrOrVoltSource := 0.0;
+                                        (* Current Source *)
+                                        (* '<S3>:59:5' isIsland = 0; *)
+                                        isIsland := 0.0;
+                                        (* Entry Internal 'GridConnected': '<S3>:59' *)
+                                        (* Transition: '<S3>:2' *)
+                                        is_GridConnected := 1;
+                                        (* Entry 'Nominal': '<S3>:1' *)
+                                        (* '<S3>:1:3' PQcmd = [Pcmd;0]; *)
+                                        PQcmd[0] := Pcmd_W;
+                                        PQcmd[1] := 0.0;
+                                END_CASE;
+                            END_IF;
+                            is_GridBreakerLogic := 1;
+                            (* Entry 'GridTied': '<S3>:36' *)
+                            (* '<S3>:36:3' GridTie = 1; *)
+                            GridBrk := 1.0;
+                        ELSE 
+                            (* '<S3>:74:3' GridTie = 1; *)
+                            GridBrk := 1.0;
+                            (* '<S3>:74:4' isIsland = 0; *)
+                            isIsland := 0.0;
+                        END_IF;
+                    4: 
+                        (* During 'Synchronize': '<S3>:71' *)
+                        (* '<S3>:73:1' sf_internal_predicateOutput = after(2,sec); *)
+                        temporalCounter_i2(timerAction := 2, maxTime := 2000);
+                        IF temporalCounter_i2.done THEN 
+                            (* Transition: '<S3>:73' *)
+                            is_GridBreakerLogic := 3;
+                            temporalCounter_i2(timerAction := 1, maxTime := 0);
+                            (* Entry 'Reconnect': '<S3>:74' *)
+                            (* '<S3>:74:3' GridTie = 1; *)
+                            GridBrk := 1.0;
+                            (* '<S3>:74:4' isIsland = 0; *)
+                            isIsland := 0.0;
+                        END_IF;
+                END_CASE;
+            END_IF;
+        END_IF;
+        (* End of Chart: '<S2>/Peak_Shaving Algorithm' *)
+        (* End of Outputs for SubSystem: '<S1>/Subsystem' *)
+        (* End of Outputs for SubSystem: '<Root>/PLC_64_Scaler' *)
+        
+        (* Outport: '<Root>/PQcmd_P' *)
+        PQcmd_P := PQcmd[0];
+        (* Outport: '<Root>/PQcmd_Q' *)
+        PQcmd_Q := PQcmd[1];
+        (* Outport: '<Root>/ESS_Mode_ControlType' *)
+        ESS_Mode_ControlType := ESS_Mode_f.ControlType;
+        (* Outport: '<Root>/ESS_Mode_BattMode_CurrOrVoltSource' *)
+        c_ESS_Mode_BattModev := ESS_Mode_f.Batt_Mode.CurrOrVoltSource;
+        (* Outport: '<Root>/ESS_Mode_BattMode_GenOrSynchMode' *)
+        d_ESS_Mode_BattModev := ESS_Mode_f.Batt_Mode.GenOrSynchMode;
+END_CASE;
+END_FUNCTION_BLOCK
