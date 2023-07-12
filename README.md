@@ -12,7 +12,7 @@ This reference application demonstrates how to perform model-in-the-loop (MIL) a
 - Design and test EMS supervisory logic and peak shaving controls for various operational scenarios to ensure compliance with grid codes
 - Seamlessly transition from MIL to HIL within Simulink without changing your model 
 - Configure a PROFINET fieldbus interface between the microgrid digital twin and the EMS controller hardware
-- Leverage HIL simulation to validate EMS hardware using a digital twin of the microgrid 
+- Leverage HIL testing to validate EMS hardware using a digital twin of the microgrid 
 
 ----------
 
